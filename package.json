@@ -1,0 +1,24 @@
+{
+  "name": "planning-poker",
+  "private": true,
+  "description": "Real-time planning poker for agile teams, styled like a real poker table",
+  "license": "MIT",
+  "type": "module",
+  "scripts": {
+    "dev": "vite",
+    "build": "vite build",
+    "preview": "vite preview",
+    "test": "vitest run"
+  },
+  "dependencies": {
+    "react": "^18.3.1",
+    "react-dom": "^18.3.1",
+    "react-router-dom": "^6.26.0",
+    "trystero": "^0.26.0"
+  },
+  "devDependencies": {
+    "@vitejs/plugin-react": "^4.3.1",
+    "vite": "^5.4.0",
+    "vitest": "^2.0.0"
+  }
+}
