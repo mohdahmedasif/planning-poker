@@ -347,3 +347,64 @@ label { font-size: .85rem; color: #6b6555; }
   .front .value { font-size: 1.5rem; }
   .flip { width: 44px; height: 64px; }
 }
+
+@media (hover: none) {
+  .card:hover:not(:disabled) { transform: rotate(var(--rot)) translateY(var(--lift)); }
+  .card:hover:not(:disabled) .front { box-shadow: 0 6px 14px #0008; }
+}
+
+@media (max-width: 640px) {
+  .center { min-height: 100dvh; padding: 16px; }
+  .panel, .panel.waiting { width: 100%; max-width: 420px; padding: 24px 20px; }
+
+  .game { min-height: 100dvh; }
+  .game header { padding: 10px 14px; gap: 10px; }
+  .game header .brand { min-width: 0; gap: 8px; }
+  .game header .logo { width: 32px; height: 32px; font-size: 1rem; flex-shrink: 0; }
+  .game header h1 { font-size: .95rem; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .game header .brand > div { min-width: 0; }
+  .header-actions { gap: 6px; flex-shrink: 0; }
+  .header-actions .seats { display: none; }
+  .header-actions button.ghost { padding: 7px 11px; font-size: .78rem; }
+
+  .room { padding: 52px 56px 44px; }
+  .table { width: min(100%, 320px); aspect-ratio: 1 / 1.4; }
+  .rail { padding: 12px; }
+  .felt { outline-offset: -14px; }
+  .center-pot { width: 80%; gap: 8px; }
+  .center-pot .label { font-size: .6rem; }
+  .story { font-size: 1.05rem; overflow-wrap: anywhere; }
+  .story-input { font-size: .9rem; padding: 8px; }
+  .hint { font-size: .8rem; }
+  .result { font-size: .9rem; }
+  .result strong { font-size: 1.4rem; }
+  .pot-actions { gap: 6px; }
+  .pot-actions button, .chip-btn { padding: 9px 16px; font-size: .85rem; }
+
+  .seat { gap: 5px; }
+  .flip { width: 34px; height: 50px; }
+  .front.small .value { font-size: 1.05rem; }
+  .front.small .cup { font-size: 1.2rem; }
+  .flip.voted .back { border-width: 2px; }
+  .nameplate { padding: 2px 8px 2px 2px; gap: 5px; }
+  .avatar { width: 24px; height: 24px; font-size: .58rem; }
+  .pname { font-size: .72rem; max-width: 60px; }
+  .dealer { width: 16px; height: 16px; font-size: .55rem; }
+
+  .hand-wrap { padding: 0 0 calc(12px + env(safe-area-inset-bottom)); }
+  .hand {
+    flex-wrap: nowrap; justify-content: flex-start; gap: 8px; padding: 24px 16px 6px;
+    overflow-x: auto; scroll-snap-type: x proximity; scrollbar-width: none;
+    mask-image: linear-gradient(90deg, transparent, #000 16px, #000 calc(100% - 16px), transparent);
+  }
+  .hand::-webkit-scrollbar { display: none; }
+  .card { flex: 0 0 auto; width: 62px; height: 90px; scroll-snap-align: center; --rot: 0deg !important; --lift: 0px !important; }
+  .card.selected, .card.selected:hover:not(:disabled) { transform: translateY(-16px); }
+  .card .front .pips span { font-size: .8rem; }
+  .card .front .ace { font-size: 2.2rem; }
+  .card .front .corner { font-size: .7rem; top: 5px; left: 5px; }
+  .card .front .corner.bottom { top: auto; left: auto; bottom: 5px; right: 5px; }
+  .card .front .corner b { font-size: .8rem; }
+  .card .front.coffee .cup { font-size: 1.8rem; }
+  .card .front.coffee .caption { font-size: .5rem; letter-spacing: .14em; }
+}
