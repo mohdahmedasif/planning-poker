@@ -4,9 +4,21 @@ import * as game from './rooms.js';
 
 const APP_ID = 'planning-poker.github.io/mohdahmedasif';
 
-const turnUrls = import.meta.env.VITE_TURN_URLS?.split(',').map((u) => u.trim()).filter(Boolean);
+const listFromEnv = (value) => value?.split(',').map((u) => u.trim()).filter(Boolean);
+
+const RELAY_URLS = listFromEnv(import.meta.env.VITE_NOSTR_RELAYS) ?? [
+  'wss://relay.damus.io',
+  'wss://nos.lol',
+  'wss://relay.primal.net',
+  'wss://relay.snort.social',
+  'wss://nostr.mom',
+  'wss://offchain.pub',
+];
+
+const turnUrls = listFromEnv(import.meta.env.VITE_TURN_URLS);
 const ROOM_CONFIG = {
   appId: APP_ID,
+  relayConfig: { urls: RELAY_URLS },
   ...(turnUrls?.length && {
     turnConfig: [
       {

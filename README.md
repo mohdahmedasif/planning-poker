@@ -40,6 +40,19 @@ To test locally, open the table in two different browsers (or a normal and a pri
 
 The site is then available at `https://<user>.github.io/<repo>/`.
 
+### Optional: TURN server for strict networks
+
+Two browsers on different networks normally connect directly. Behind strict firewalls, corporate VPNs or some mobile networks, a direct connection can fail, and players get stuck on "Opening a direct connection to the dealer". A TURN server relays the (still encrypted) traffic for those players.
+
+1. Get TURN credentials, e.g. from [Cloudflare Realtime TURN](https://developers.cloudflare.com/realtime/turn/) or [Metered](https://www.metered.ca/stun-turn) (both have free tiers).
+2. Add these repository secrets under **Settings → Secrets and variables → Actions**:
+   - `TURN_URLS`: comma-separated, e.g. `turn:turn.example.com:3478,turns:turn.example.com:5349`
+   - `TURN_USERNAME`
+   - `TURN_CREDENTIAL`
+3. Re-run the deploy workflow.
+
+TURN credentials are embedded in the built site, so use credentials restricted to TURN only.
+
 ## Project structure
 
 ```
