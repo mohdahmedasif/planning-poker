@@ -1,8 +1,27 @@
 import { useEffect, useRef, useState } from 'react';
-import { joinRoom } from 'trystero';
+import { joinRoom, getRelaySockets } from 'trystero';
 import * as game from './rooms.js';
 
 const APP_ID = 'planning-poker.github.io/mohdahmedasif';
+
+const turnUrls = import.meta.env.VITE_TURN_URLS?.split(',').map((u) => u.trim()).filter(Boolean);
+const ROOM_CONFIG = {
+  appId: APP_ID,
+  ...(turnUrls?.length && {
+    turnConfig: [
+      {
+        urls: turnUrls,
+        username: import.meta.env.VITE_TURN_USERNAME,
+        credential: import.meta.env.VITE_TURN_CREDENTIAL,
+      },
+    ],
+  }),
+};
+
+export const hasTurn = Boolean(turnUrls?.length);
+
+const openRelayCount = () =>
+  Object.values(getRelaySockets()).filter((socket) => socket?.readyState === WebSocket.OPEN).length;
 const dealerKey = (tableId) => `dealer:${tableId}`;
 
 export function createTable(tableId, name) {
@@ -12,13 +31,16 @@ export function createTable(tableId, name) {
 export function useTable(tableId, playerId, playerName, onExit) {
   const [state, setState] = useState(null);
   const [connected, setConnected] = useState(false);
+  const [relays, setRelays] = useState(0);
+  const [peerSeen, setPeerSeen] = useState(false);
   const sendRef = useRef(() => {});
   const exitRef = useRef(onExit);
   exitRef.current = onExit;
 
   useEffect(() => {
     if (!playerName) return;
-    const room = joinRoom({ appId: APP_ID }, tableId);
+    const room = joinRoom(ROOM_CONFIG, tableId);
+    const relayTimer = setInterval(() => setRelays(openRelayCount()), 1000);
     const stateAction = room.makeAction('state');
     const actionAction = room.makeAction('action');
     const noticeAction = room.makeAction('notice');
@@ -108,7 +130,10 @@ export function useTable(tableId, playerId, playerName, onExit) {
       let dealerPeer = null;
       const hello = { type: 'join', playerId, playerName };
 
-      room.onPeerJoin = (peer) => actionAction.send(hello, { target: peer });
+      room.onPeerJoin = (peer) => {
+        setPeerSeen(true);
+        actionAction.send(hello, { target: peer });
+      };
       room.onPeerLeave = (peer) => {
         if (peer === dealerPeer) {
           dealerPeer = null;
@@ -132,9 +157,11 @@ export function useTable(tableId, playerId, playerName, onExit) {
 
     return () => {
       done = true;
+      clearInterval(relayTimer);
       room.leave();
     };
   }, [tableId, playerId, playerName]);
 
-  return { state, connected, send: (msg) => sendRef.current(msg) };
+  const status = connected ? 'connected' : peerSeen ? 'handshake' : relays > 0 ? 'searching' : 'relays';
+  return { state, connected, status, relays, send: (msg) => sendRef.current(msg) };
 }

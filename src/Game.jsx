@@ -1,7 +1,7 @@
 import { randomId, copyText } from './util.js';
 import { useEffect, useState } from 'react';
 import { useParams, useNavigate, Link } from 'react-router-dom';
-import { useTable } from './game/useTable.js';
+import { useTable, hasTurn } from './game/useTable.js';
 
 const CARDS = ['0', '1', '2', '3', '5', '8', '🃏', '☕'];
 const SUITS = ['♠', '♥', '♦', '♣'];
@@ -144,6 +144,75 @@ function CardFace({ value, small }) {
   );
 }
 
+const STEPS = [
+  { key: 'relays', label: 'Connecting to the matchmaking relays' },
+  { key: 'searching', label: 'Looking for the dealer at this table' },
+  { key: 'handshake', label: 'Opening a direct connection to the dealer' },
+];
+
+function WaitingRoom({ tableId, status, relays }) {
+  const [elapsed, setElapsed] = useState(0);
+  useEffect(() => {
+    const timer = setInterval(() => setElapsed((s) => s + 1), 1000);
+    return () => clearInterval(timer);
+  }, []);
+  const current = STEPS.findIndex((s) => s.key === status);
+
+  return (
+    <main className="center">
+      <section className="panel waiting">
+        <div className="shuffle" aria-hidden="true">
+          {[0, 1, 2, 3].map((i) => (
+            <span key={i} style={{ '--i': i }} />
+          ))}
+        </div>
+        <div className="waiting-head">
+          <h1>Waiting for the dealer</h1>
+          <small>
+            Table <code>{tableId.slice(0, 8)}</code> · {elapsed}s
+          </small>
+        </div>
+
+        <ol className="steps">
+          {STEPS.map((step, i) => (
+            <li key={step.key} className={i < current ? 'done' : i === current ? 'active' : ''}>
+              <span className="dot">{i < current ? '✓' : i + 1}</span>
+              <span>
+                {step.label}
+                {step.key === 'relays' && relays > 0 && <em> · {relays} connected</em>}
+              </span>
+            </li>
+          ))}
+        </ol>
+
+        {elapsed >= 20 && (
+          <div className="tips">
+            <strong>Still waiting? Check that:</strong>
+            <ul>
+              {status === 'relays' && <li>Your network or VPN isn't blocking secure WebSockets to public relays.</li>}
+              {status === 'searching' && (
+                <li>The person who created the table still has that exact tab open (refreshing is fine).</li>
+              )}
+              {status === 'handshake' && (
+                <li>
+                  The dealer was found but a direct connection failed. This happens across strict firewalls, corporate
+                  VPNs or mobile hotspots{hasTurn ? '' : '; configuring a TURN server fixes it'}.
+                </li>
+              )}
+              <li>You opened the full invite link, including the part after #.</li>
+              <li>Both of you are using a recent Chrome, Edge, Firefox or Safari.</li>
+            </ul>
+          </div>
+        )}
+
+        <Link to="/" className="back-link">
+          ← Back to home
+        </Link>
+      </section>
+    </main>
+  );
+}
+
 export default function Game() {
   const { id } = useParams();
   const [playerName, setPlayerName] = useState(localStorage.getItem('playerName') || '');
@@ -152,7 +221,7 @@ export default function Game() {
   const [storyDraft, setStoryDraft] = useState('');
   const [copied, setCopied] = useState(false);
   const navigate = useNavigate();
-  const { state, connected, send } = useTable(id, getPlayerId(), playerName, (type) =>
+  const { state, connected, status, relays, send } = useTable(id, getPlayerId(), playerName, (type) =>
     navigate('/', { state: { [type]: true } })
   );
 
@@ -189,14 +258,7 @@ export default function Game() {
     );
   }
 
-  if (!state) {
-    return (
-      <main className="center muted">
-        <p>Looking for the dealer…</p>
-        <small>The person who created this table needs to have it open.</small>
-      </main>
-    );
-  }
+  if (!state) return <WaitingRoom tableId={id} status={status} relays={relays} />;
 
   const me = getPlayerId();
   const isHost = state.hostId === me;
