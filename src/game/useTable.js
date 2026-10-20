@@ -119,12 +119,13 @@ export function useTable(tableId, playerId, playerName, onExit) {
         const { table, kicked, seq: savedSeq = 0 } = JSON.parse(saved);
         let seq = savedSeq;
         const lastSeen = {};
+        const snapshot = () => ({ ...game.publicState(table), dealerId: playerId });
         Object.keys(table.players).forEach((pid) => (lastSeen[pid] = Date.now()));
 
         const broadcast = () => {
           seq = Math.max(Date.now(), seq + 1);
           sessionStorage.setItem(dealerKey(tableId), JSON.stringify({ table, kicked, seq }));
-          const s = game.publicState(table);
+          const s = snapshot();
           setState(s);
           publish('state', { seq, state: s }, true);
         };
@@ -184,7 +185,7 @@ export function useTable(tableId, playerId, playerName, onExit) {
           lastSeen[msg.from] = Date.now();
           apply(msg.from, msg);
         };
-        subscribe(['action'], () => publish('state', { seq, state: game.publicState(table) }, true));
+        subscribe(['action'], () => publish('state', { seq, state: snapshot() }, true));
 
         timers.push(
           setInterval(() => {
@@ -193,7 +194,7 @@ export function useTable(tableId, playerId, playerName, onExit) {
             );
             stale.forEach((pid) => game.leave(table, pid));
             if (stale.length) broadcast();
-            else publish('state', { seq, state: game.publicState(table) }, true);
+            else publish('state', { seq, state: snapshot() }, true);
           }, HEARTBEAT_MS)
         );
 

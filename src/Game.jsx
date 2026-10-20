@@ -1,5 +1,5 @@
 import { randomId, copyText } from './util.js';
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { useParams, useNavigate, Link } from 'react-router-dom';
 import { useTable } from './game/useTable.js';
 
@@ -215,6 +215,8 @@ export default function Game() {
   const [myVote, setMyVote] = useState(null);
   const [storyDraft, setStoryDraft] = useState('');
   const [copied, setCopied] = useState(false);
+  const [armed, setArmed] = useState(null);
+  const armTimer = useRef();
   const navigate = useNavigate();
   const { state, connected, status, relays, send } = useTable(id, getPlayerId(), playerName, (type) =>
     navigate('/', { state: { [type]: true } })
@@ -271,6 +273,18 @@ export default function Game() {
     send({ type: 'story', story: storyDraft.trim() });
   }
 
+  // window.confirm is silently blocked in many in-app mobile browsers, so destructive actions need a second tap.
+  function tapTwice(key, action) {
+    clearTimeout(armTimer.current);
+    if (armed === key) {
+      setArmed(null);
+      action();
+    } else {
+      setArmed(key);
+      armTimer.current = setTimeout(() => setArmed(null), 3000);
+    }
+  }
+
   function copyLink() {
     copyText(`${location.origin}${location.pathname}#/game/${id}`);
     setCopied(true);
@@ -296,11 +310,8 @@ export default function Game() {
             {copied ? 'Link copied!' : 'Invite players'}
           </button>
           {isHost && (
-            <button
-              className="ghost danger"
-              onClick={() => confirm('End the game for everyone?') && send({ type: 'end' })}
-            >
-              End game
+            <button className="ghost danger" onClick={() => tapTwice('end', () => send({ type: 'end' }))}>
+              {armed === 'end' ? 'Tap again to end' : 'End game'}
             </button>
           )}
         </div>
@@ -409,13 +420,13 @@ export default function Game() {
                     👑
                   </button>
                 )}
-                {isHost && p.id !== me && (
+                {isHost && p.id !== me && p.id !== state.dealerId && (
                   <button
-                    className="crown"
+                    className={`crown remove ${armed === p.id ? 'armed' : ''}`}
                     title={`Remove ${p.name}`}
-                    onClick={() => confirm(`Remove ${p.name} from the game?`) && send({ type: 'kick', targetId: p.id })}
+                    onClick={() => tapTwice(p.id, () => send({ type: 'kick', targetId: p.id }))}
                   >
-                    ✕
+                    {armed === p.id ? 'Remove?' : '✕'}
                   </button>
                 )}
               </div>
