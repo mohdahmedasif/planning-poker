@@ -4,13 +4,13 @@ import * as game from './rooms.js';
 
 const APP_ID = 'planning-poker-mohdahmedasif-v2';
 
-const BROKER_URLS = import.meta.env.VITE_MQTT_BROKERS?.split(',')
+const CONFIGURED_BROKERS = (import.meta.env.VITE_MQTT_BROKERS ?? '')
+  .split(',')
   .map((u) => u.trim())
-  .filter(Boolean) ?? [
-  'wss://broker.emqx.io:8084/mqtt',
-  'wss://broker.hivemq.com:8884/mqtt',
-  'wss://test.mosquitto.org:8081/mqtt',
-];
+  .filter(Boolean);
+const BROKER_URLS = CONFIGURED_BROKERS.length
+  ? CONFIGURED_BROKERS
+  : ['wss://broker.emqx.io:8084/mqtt', 'wss://broker.hivemq.com:8884/mqtt', 'wss://test.mosquitto.org:8081/mqtt'];
 
 const HEARTBEAT_MS = 5000;
 // Hidden tabs only run timers about once a minute, so the timeout must exceed that.
