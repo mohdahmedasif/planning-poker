@@ -27,9 +27,7 @@ jobs:
       - run: npm test
       - run: npm run build
         env:
-          VITE_TURN_URLS: ${{ secrets.TURN_URLS }}
-          VITE_TURN_USERNAME: ${{ secrets.TURN_USERNAME }}
-          VITE_TURN_CREDENTIAL: ${{ secrets.TURN_CREDENTIAL }}
+          VITE_MQTT_BROKERS: ${{ vars.MQTT_BROKERS }}
       - uses: actions/upload-pages-artifact@v3
         with:
           path: dist
