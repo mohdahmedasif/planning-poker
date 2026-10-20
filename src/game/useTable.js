@@ -1,18 +1,15 @@
 import { useEffect, useRef, useState } from 'react';
-import { joinRoom, getRelaySockets } from 'trystero';
+import { joinRoom, getRelaySockets } from '@trystero-p2p/mqtt';
 import * as game from './rooms.js';
 
 const APP_ID = 'planning-poker.github.io/mohdahmedasif';
 
 const listFromEnv = (value) => value?.split(',').map((u) => u.trim()).filter(Boolean);
 
-const RELAY_URLS = listFromEnv(import.meta.env.VITE_NOSTR_RELAYS) ?? [
-  'wss://relay.damus.io',
-  'wss://nos.lol',
-  'wss://relay.primal.net',
-  'wss://relay.snort.social',
-  'wss://nostr.mom',
-  'wss://offchain.pub',
+const RELAY_URLS = listFromEnv(import.meta.env.VITE_MQTT_BROKERS) ?? [
+  'wss://broker.emqx.io:8084/mqtt',
+  'wss://broker.hivemq.com:8884/mqtt',
+  'wss://test.mosquitto.org:8081/mqtt',
 ];
 
 const turnUrls = listFromEnv(import.meta.env.VITE_TURN_URLS);
